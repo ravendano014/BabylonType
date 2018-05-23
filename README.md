@@ -2,26 +2,48 @@
 
 Generate letters in BABYLON meshes.
 
-#Basic-Usage
+### Basic-Usage
 
-  Type  = BABYLONTYPE(scene, scale, "HirukoPro-Book");
-  text  = new Type( 
-              "ABC",
-              {
-                  "anchor": "center",
-                  "letter-height": 50,
-                  "color": "#1C3870",
-                  "font-family": "HelveticaNeue-Medium",
-                  "position": {
-                      "z": 20
-                  }
-              }
-          );
+	Type  = BABYLONTYPE(scene, scale, "HirukoPro-Book");
+	text  = new Type( 
+	            "ABC",
+	            {
+	                "anchor": "center",
+	                "letter-height": 50,
+	                "color": "#1C3870",
+	                "font-family": "HelveticaNeue-Medium",
+	                "position": {
+	                    "z": 20
+	                }
+	            }
+	       );
 
-See playground example:
+&#9679; See playground example:
 https://www.babylonjs-playground.com/#XWVXN9#7
 
-BABYLONTYPE is a superconstructor, returns a constructor
+### BABYLONTYPE
+
+&#9679; is a superconstructor,
+&#9679; loaded to window, as a global variable
+&#9679; returns a constructor
+
+##### Parameters
+
+1) Scene
+
+2) Scale
+
+3) Default font
+
+
+##### POST /data/dre-data-_DNS_/messages
+Body contains actual data in an object with a slightly strange format.  It has two fields:
+- **"Body"** String of a JSON object with yer data.  If you parse that string (a parse on a parse) there are two fields, "cols" and "rows", which are both arrays.  Net effect is to emulate a table (like SQL, CSV or Excel).
+- **"Mapping:"**  String of a JSON object that contains a mapping of the Predpol field names onto field names of the table, above.
+
+_**DNS** is the unique name for that channel._
+_**TYPE** is "data", "logs" or "commands"._
+
 
   // TYPE() - superconstructor - parameters
   //   ~ scene
