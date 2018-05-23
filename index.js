@@ -144,6 +144,7 @@ define(
 
       return Type;
     };
+    window.BABYLONTYPE           = Wrapper;
     window.TYPE                  = Wrapper;
     return Wrapper;
 
