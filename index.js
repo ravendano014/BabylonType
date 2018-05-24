@@ -39,7 +39,6 @@ define(
         }
       };
 
-      // function Type(lttrs,font,elv,lt,ln,hite,thick,a,colr){
       function Type(lttrs,opt){
         var options              = NNO(opt) ? opt : { } ,
             position             = NNO(options.position) ? options.position : {} ,
@@ -91,7 +90,6 @@ define(
       };
 
       proto                      = Type.prototype;
-
 
       proto.setColor             = function(color){
         var letters              = this,
