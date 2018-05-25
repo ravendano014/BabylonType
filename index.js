@@ -4,6 +4,11 @@
 
 define(
   ['./types/hirukopro-book','./types/helveticaneue-medium'],
+
+  // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
+  // This function loads the specific type-faces and returns the superconstructor
+  // It also assigns the superconstructor to global variable 'BABYLONTYPE'
+
   function(HPB,HNM){
 
     var scene,scale,FONTS,defaultFont,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
@@ -14,9 +19,16 @@ define(
     defaultFont                  = "HelveticaNeue-Medium";
     defaultColor                 = "#808080";
     defaultOpac                  = 1;
-    curveSampleSize              = 6;
-    naturalLetterHeight          = 1000;
+    curveSampleSize              = 6;                                 // Exposing this or making it dynamic might optimize performance by reducing vertices
+    naturalLetterHeight          = 1000; 
 
+    // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
+    //  SUPERCONSTRUCTOR  SUPERCONSTRUCTOR  SUPERCONSTRUCTOR 
+    // Parameters:
+    //   ~ scene
+    //   ~ scale
+    //   ~ default font
+    //
     var Wrapper                  = function(scn,scl,ff){
 
       var proto;
@@ -24,7 +36,7 @@ define(
       scale                      = tyN(scl) ? scl : 1 ;
       if(NNO(FONTS[ff])){defaultFont=ff}
 
-      // Thansk Gijs, wherever you are
+      // Thanks Gijs, wherever you are
       BABYLON.Path2.prototype.addCurveTo = function(redX, redY, blueX, blueY){
         var points           = this.getPoints();
         var lastPoint        = points[points.length - 1];
@@ -39,6 +51,14 @@ define(
         }
       };
 
+
+      // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
+      //  ONSTRUCTOR  ONSTRUCTOR  CONSTRUCTOR  CONSTRUCTOR
+      // Called with 'new'
+      // Parameters:
+      //   ~ letters
+      //   ~ options
+      //
       function Type(lttrs,opt){
         var options              = NNO(opt) ? opt : { } ,
             position             = NNO(options.position) ? options.position : {} ,
@@ -75,7 +95,6 @@ define(
         this.getMesh             = function()  {return mesh};
         this.getMaterial         = function()  {return material};
         this.color               = function(c) {return NES(c)?color=c:color};
-        this.opac                = function(o) {return Amp(o)?opac=o:opac};
         this.alpha               = function(o) {return Amp(o)?opac=o:opac};
 
         function setOption(field, tst, defalt) {
@@ -97,25 +116,6 @@ define(
         if(NES(color)){
           material.emissiveColor = rgb2Bcolor3(letters.color(color));
         }
-      };
-      proto.setOpac              = function(opac){
-        var letters              = this,
-            material             = this.getMaterial();
-        if(Amp(opac)){
-          material.alpha         = letters.opac(opac)
-        }
-      };
-      proto.overrideOpac         = function(opac){
-        var letters              = this,
-            material             = this.getMaterial();
-        if(Amp(opac)){
-          material.alpha         = opac
-        }
-      };
-      proto.resetOpac            = function(){
-        var letters              = this,
-            material             = this.getMaterial();
-        material.alpha           = letters.opac()
       };
       proto.setAlpha             = function(alpha){
         var letters              = this,
@@ -160,7 +160,7 @@ define(
 
     function constructLetterPolygons(letters,fontSpec,xOffset,yOffset,zOffset,letterScale,thickness,material){
       var xTra                   = 0,
-          netMeshes              = [],i,j,k,combo,shapesList,holesList,shape,holes,hole,csgShape,csgHole,net;
+          netMeshes              = [],i,j,k,combo,shapesList,holesList,shape,holes,csgShape,csgHole;
 
       for(i=0;i<letters.length;i++){
         if(NNO(fontSpec[letters[i]])){
@@ -173,8 +173,7 @@ define(
             if(NEA(holes)){
               csgShape           = BABYLON.CSG.FromMesh(shape);
               for(k=0;k<holes.length;k++){
-                hole             = holes[k];
-                csgHole          = BABYLON.CSG.FromMesh(hole);
+                csgHole          = BABYLON.CSG.FromMesh(holes[k]);
                 csgShape         = csgShape.subtract(csgHole)
               }
               holes.forEach(function(h){h.dispose()});
@@ -192,6 +191,17 @@ define(
       netMeshes.width            = xTra;
       return netMeshes;
 
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+      // A letter may have one or more shapes and zero or more holes
+      // The shapeCmds is an array of shapes
+      // The holeCmds is an array of array of holes (since one shape 'B' may have multiple holes)
+      // The arrays must line up so holes have the same index as the shape they subtract from
+      // '%' is the best example since it has three shapes and two holes
+      // 
+      // For mystifying reasons, the holeCmds (provided by the font) must be reversed
+      // from the original order and the shapeCmds must *not* be reversed
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
       function buildLetterMeshes(letter,index,spec){
         var offX                 = xOffset+xTra,
             offZ                 = zOffset,
@@ -202,6 +212,7 @@ define(
 
         return [shapeCmdsLists.map(meshFromCmdsList),holeCmdsListsArray.map(meshesFromCmdsListArray)];
 
+        
         function meshesFromCmdsListArray(cmdsListArray){
           return cmdsListArray.map(function(d){return meshFromCmdsList(d,true)})
         };
@@ -219,10 +230,6 @@ define(
           meshBuilder            = new BABYLON.PolygonMeshBuilder("Type-"+letter+index+"-"+weeid(),array,scene);
           mesh                   = meshBuilder.build(true,thickness);
           return mesh;
-
-          function point2Vector(point){
-            return new BABYLON.Vector2(Γ(0.3+point.x*1000000)/1000000,Γ(0.3+point.y*1000000)/1000000)
-          }
         };
         function adjustX(xVal){return offX+letterScale*xVal};
         function adjustZ(yVal){return offZ+letterScale*yVal}
@@ -238,10 +245,16 @@ define(
       cm0.alpha                  = opac;
       return cm0
     };
+
+    // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
+    // Conversion functions
     function rgb2Bcolor3(rgb){
       rgb                        = rgb.replace("#","");
       return new BABYLON.Color3(convert(rgb.substring(0,2)),convert(rgb.substring(2,4)),convert(rgb.substring(4,6)));
       function convert(x){return Γ(1000*Math.max(0,Math.min((tyN(parseInt(x,16))?parseInt(x,16):0)/255,1)))/1000}
+    };
+    function point2Vector(point){
+      return new BABYLON.Vector2(Γ(0.3+point.x*1000000)/1000000,Γ(0.3+point.y*1000000)/1000000)
     };
 
     // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*

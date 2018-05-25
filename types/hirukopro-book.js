@@ -1,6 +1,5 @@
 //  HIRUKOPRO-BOOK  HIRUKOPRO-BOOK  HIRUKOPRO-BOOK  HIRUKOPRO-BOOK 
 //
-// Prisms polygons
 //
 
 define(
