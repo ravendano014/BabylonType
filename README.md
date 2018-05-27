@@ -63,6 +63,8 @@ Each Type instance has methods to allow one to retrieve the BabylonJS objects or
 	   getSPS
 	   getMesh
 	   getMaterial
+	   getLetterCenter         # called with a number, the index of the letter in question
+	                           # returns a Vector2, the letter center from the origin in 2 dimensions
 	   color                   # sets or gets color but no change to material
 	   alpha                   # sets or gets alpha but no change to material
 	   setColor                # set emissive color and change color value

@@ -77,23 +77,26 @@ define(
             specular             = setColor("specular", NES, "#000000"),
             ambient              = setColor("ambient", NES, "#F0F0F0"),
             emissive             = setColor("emissive", NES, basicColor),
-            letterScale          = Γ(0.3+scale*rawheight*1000000)/(naturalLetterHeight*1000000),
-            thickness            = Γ(0.3+scale*rawThickness*1000000)/1000000,
-            letters              = NES(lttrs)?lttrs:"",
-            material             = makeMaterial(scene,letters,emissive,ambient,specular,diffuse,opac),
-            meshes               = constructLetterPolygons(letters,fontSpec,0,0,0,letterScale,thickness,material),
-            width                = Γ(0.3+meshes.width*1000000)/1000000,
-            combo                = makeSPS(scene,meshes,material),
+            letterScale          = round(scale*rawheight/naturalLetterHeight),
+            thickness            = round(scale*rawThickness),
+            letters              = NES(lttrs) ? lttrs : "" ,
+            material             = makeMaterial(scene, letters, emissive, ambient, specular, diffuse, opac),
+            meshes               = constructLetterPolygons(letters, fontSpec, 0, 0, 0, letterScale, thickness, material),
+            offsetX              = anchor==="right"?(0-meshes.width):anchor==="center"?(0-meshes.width/2):0,
+            letterBoxes          = meshes.letterBoxes,
+            combo                = makeSPS(scene, meshes, material),
             sps                  = combo[0],
             mesh                 = combo[1];
 
-        mesh.position.x          = scale*x-(anchor==="right"?width:anchor==="center"?width/2:0);
+        mesh.position.x          = scale*x+offsetX;
         mesh.position.y          = scale*y;
         mesh.position.z          = scale*z;
 
         this.getSPS              = function()  {return sps}
         this.getMesh             = function()  {return mesh};
         this.getMaterial         = function()  {return material};
+        this.getOffsetX          = function()  {return offsetX};
+        this.getLetterBoxes      = function()  {return letterBoxes};
         this.color               = function(c) {return NES(c)?color=c:color};
         this.alpha               = function(o) {return Amp(o)?opac=o:opac};
 
@@ -111,31 +114,33 @@ define(
       proto                      = Type.prototype;
 
       proto.setColor             = function(color){
-        var letters              = this,
-            material             = this.getMaterial();
+        var material             = this.getMaterial();
         if(NES(color)){
-          material.emissiveColor = rgb2Bcolor3(letters.color(color));
+          material.emissiveColor = rgb2Bcolor3(this.color(color));
         }
       };
       proto.setAlpha             = function(alpha){
-        var letters              = this,
-            material             = this.getMaterial();
+        var material             = this.getMaterial();
         if(Amp(alpha)){
-          material.alpha         = letters.alpha(alpha)
+          material.alpha         = this.alpha(alpha)
         }
       };
       proto.overrideAlpha        = function(alpha){
-        var letters              = this,
-            material             = this.getMaterial();
+        var material             = this.getMaterial();
         if(Amp(alpha)){
           material.alpha         = alpha
         }
       };
       proto.resetAlpha           = function(){
-        var letters              = this,
-            material             = this.getMaterial();
-        material.alpha           = letters.alpha()
+        var material             = this.getMaterial();
+        material.alpha           = this.alpha()
       };
+      proto.getLetterCenter      = function(ix){
+        var lB                   = this.getLetterBoxes()[ix];
+        if(tyA(lB)){
+          return new BABYLON.Vector2(round((lB[0]+lB[1])/2+this.getOffsetX()),round((lB[2]+lB[3])/2))
+        }
+      }
       proto.dispose              = function(){
         if(NNO(this.getMesh())){this.getMesh().dispose()}
       };
@@ -146,25 +151,29 @@ define(
     window.TYPE                  = Wrapper;
     return Wrapper;
 
-    function makeSPS(scene,meshes,material){
-      var sps                    = new BABYLON.SolidParticleSystem("sps"+"test",scene, { } ),mesh;
-      meshes.forEach(function(mesh){
-        sps.addShape(mesh,1,{});
-        mesh.dispose()
-      });
-      mesh                       = sps.buildMesh();
-      mesh.material              = material;
-      sps.setParticles();
+    function makeSPS(scene,meshes,material,_sps){
+      var sps,mesh;
+      if(meshes.length){
+        sps                      = new BABYLON.SolidParticleSystem("sps"+"test",scene, { } );
+        meshes.forEach(function(mesh){
+          sps.addShape(mesh, 1, {});
+          mesh.dispose()
+        });
+        mesh                     = sps.buildMesh();
+        mesh.material            = material;
+        sps.setParticles()
+      }
       return [sps,mesh]
     };
 
-    function constructLetterPolygons(letters,fontSpec,xOffset,yOffset,zOffset,letterScale,thickness,material){
-      var xTra                   = 0,
-          netMeshes              = [],i,j,k,combo,shapesList,holesList,shape,holes,csgShape,csgHole;
+    function constructLetterPolygons(letters, fontSpec, xOffset, yOffset, zOffset, letterScale, thickness, material){
+      var letterOrigin           = 0,
+          letterMeshes           = [],
+          letterBoxes            = new Array(letters.length),i,j,k,combo,shapesList,holesList,shape,holes,csgShape,csgHole,letterMesh;
 
       for(i=0;i<letters.length;i++){
         if(NNO(fontSpec[letters[i]])){
-          combo                  = buildLetterMeshes(letters[i],i,fontSpec[letters[i]]);
+          combo                  = buildLetterMeshes(letters[i], i, fontSpec[letters[i]]);
           shapesList             = combo[0];
           holesList              = combo[1];
           for(j=0;j<shapesList.length;j++){
@@ -178,18 +187,18 @@ define(
               }
               holes.forEach(function(h){h.dispose()});
               shape.dispose();
-              netMesh            = csgShape.toMesh("Net-"+letters[i]+i+"-"+weeid(),material,scene);
+              letterMesh         = csgShape.toMesh("Net-"+letters[i]+i+"-"+weeid(),material,scene);
             }else{
-              netMesh            = shape
+              letterMesh         = shape
             }
-            netMesh.material     = material;
-            netMesh.position.y   = yOffset;
-            netMeshes.push(netMesh)
+            letterMesh.material  = material;
+            letterMeshes.push(letterMesh)
           }
         }
       };
-      netMeshes.width            = xTra;
-      return netMeshes;
+      letterMeshes.width            = round(letterOrigin);
+      letterMeshes.letterBoxes      = letterBoxes;
+      return letterMeshes;
 
       // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
       // A letter may have one or more shapes and zero or more holes
@@ -203,12 +212,13 @@ define(
       // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
       function buildLetterMeshes(letter,index,spec){
-        var offX                 = xOffset+xTra,
+        var offX                 = xOffset+letterOrigin,
             offZ                 = zOffset,
-            shapeCmdsLists       = tyA(spec.shapeCmds)?spec.shapeCmds:[],
-            holeCmdsListsArray   = tyA(spec.holeCmds)?spec.holeCmds:[];
+            shapeCmdsLists       = tyA(spec.shapeCmds) ? spec.shapeCmds : [],
+            holeCmdsListsArray   = tyA(spec.holeCmds) ? spec.holeCmds : [];
 
-        xTra                     = xTra+spec.width*letterScale;
+        letterBoxes[index]       = [adjustX(spec.xMin), adjustX(spec.xMax), adjustZ(spec.yMin), adjustZ(spec.yMax)];
+        letterOrigin             = letterOrigin+spec.width*letterScale;
 
         return [shapeCmdsLists.map(meshFromCmdsList),holeCmdsListsArray.map(meshesFromCmdsListArray)];
 
@@ -231,8 +241,8 @@ define(
           mesh                   = meshBuilder.build(true,thickness);
           return mesh;
         };
-        function adjustX(xVal){return offX+letterScale*xVal};
-        function adjustZ(yVal){return offZ+letterScale*yVal}
+        function adjustX(xVal){return round(offX+letterScale*xVal)};
+        function adjustZ(yVal){return round(offZ+letterScale*yVal)}
       }
     };
 
@@ -254,20 +264,21 @@ define(
       function convert(x){return Γ(1000*Math.max(0,Math.min((tyN(parseInt(x,16))?parseInt(x,16):0)/255,1)))/1000}
     };
     function point2Vector(point){
-      return new BABYLON.Vector2(Γ(0.3+point.x*1000000)/1000000,Γ(0.3+point.y*1000000)/1000000)
+      return new BABYLON.Vector2(round(point.x),round(point.y))
     };
 
     // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
     // Boolean test functions
-    function PN(mn)  { return typeof mn === "number" && !isNaN(mn) ? 0 < mn : false } ;
-    function tyN(mn) { return typeof mn === "number" } ;
-    function Amp(ma) { return typeof ma === "number" && !isNaN(ma) ? 0 <= ma && ma <= 1 : false } ;
-    function NNO(mo) { return mo != null && typeof mo === "object" || typeof mo === "function" } ;
-    function tyA(ma) { return ma != null && typeof ma === "object" && ma.constructor === Array } ; 
-    function NEA(ma) { return ma != null && typeof ma === "object" && ma.constructor === Array && 0 < ma.length } ; 
-    function NES(ms) {if(typeof(ms)=="string"){return(ms.length>0)}else{return(false)}} ;
+    function PN(mn)   { return typeof mn === "number" && !isNaN(mn) ? 0 < mn : false } ;
+    function tyN(mn)  { return typeof mn === "number" } ;
+    function Amp(ma)  { return typeof ma === "number" && !isNaN(ma) ? 0 <= ma && ma <= 1 : false } ;
+    function NNO(mo)  { return mo != null && typeof mo === "object" || typeof mo === "function" } ;
+    function tyA(ma)  { return ma != null && typeof ma === "object" && ma.constructor === Array } ; 
+    function NEA(ma)  { return ma != null && typeof ma === "object" && ma.constructor === Array && 0 < ma.length } ; 
+    function NES(ms)  {if(typeof(ms)=="string"){return(ms.length>0)}else{return(false)}} ;
     function supportedFont(ff){ return NNO(FONTS[ff]) } ;
     function supportedAnchor(a){ return a==="left"||a==="right"||a==="center" } ;
-    function weeid() { return Math.floor(Math.random()*1000000) } ;
+    function weeid()  { return Math.floor(Math.random()*1000000) } ;
+    function round(n) { return Γ(0.3+n*1000000)/1000000 }
   }
 );
