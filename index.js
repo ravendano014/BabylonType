@@ -53,7 +53,7 @@ define(
 
 
       // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
-      //  ONSTRUCTOR  ONSTRUCTOR  CONSTRUCTOR  CONSTRUCTOR
+      //  CONSTRUCTOR  CONSTRUCTOR  CONSTRUCTOR  CONSTRUCTOR
       // Called with 'new'
       // Parameters:
       //   ~ letters
@@ -61,10 +61,9 @@ define(
       //
       function Type(lttrs,opt){
         var options              = NNO(opt) ? opt : { } ,
-            position             = NNO(options.position) ? options.position : {} ,
-            colors               = NNO(options.colors) ? options.colors : {} ,
+            position             = setOption("position", NNO, {}),
+            colors               = setOption("colors", NNO, {}),
             fontFamily           = setOption("font-family", supportedFont, defaultFont),
-            fontSpec             = FONTS[fontFamily],
             anchor               = setOption("anchor", supportedAnchor, "left"),
             rawheight            = setOption("letter-height", PN, 100),
             rawThickness         = setOption("letter-thickness", PN, 1),
@@ -77,6 +76,7 @@ define(
             specular             = setColor("specular", NES, "#000000"),
             ambient              = setColor("ambient", NES, "#F0F0F0"),
             emissive             = setColor("emissive", NES, basicColor),
+            fontSpec             = FONTS[fontFamily],
             letterScale          = round(scale*rawheight/naturalLetterHeight),
             thickness            = round(scale*rawThickness),
             letters              = NES(lttrs) ? lttrs : "" ,
