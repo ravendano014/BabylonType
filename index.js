@@ -3,19 +3,25 @@
 //
 
 define(
-  ['./types/hirukopro-book','./types/helveticaneue-medium'],
+  ['./types/hirukopro-book','./types/helveticaneue-medium','./types/comicsans-normal'],
 
   // *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-* *-*=*  *=*-*
   // This function loads the specific type-faces and returns the superconstructor
   // It also assigns the superconstructor to global variable 'BABYLONTYPE'
 
-  function(HPB,HNM){
+  function(HPB,HNM,CSN){
 
     var scene,scale,FONTS,defaultFont,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
 
     FONTS                        = {};
     FONTS["HirukoPro-Book"]      = HPB;
     FONTS["HelveticaNeue-Medium"]= HNM;
+    FONTS["Helvetica"]           = HNM;
+    FONTS["Arial"]               = HNM;
+    FONTS["sans-serif"]          = HNM;
+    FONTS["Comic"]               = CSN;
+    FONTS["comic"]               = CSN;
+    FONTS["ComicSans"]           = CSN;
     defaultFont                  = "HelveticaNeue-Medium";
     defaultColor                 = "#808080";
     defaultOpac                  = 1;
