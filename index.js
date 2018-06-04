@@ -11,7 +11,7 @@ define(
 
   function(HPB,HNM,CSN){
 
-    var scene,scale,FONTS,defaultFont,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
+    var scene,scale,FONTS,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
 
     FONTS                        = {};
     FONTS["HirukoPro-Book"]      = HPB;
@@ -22,7 +22,6 @@ define(
     FONTS["Comic"]               = CSN;
     FONTS["comic"]               = CSN;
     FONTS["ComicSans"]           = CSN;
-    defaultFont                  = "HelveticaNeue-Medium";
     defaultColor                 = "#808080";
     defaultOpac                  = 1;
     curveSampleSize              = 6;                                 // Exposing this or making it dynamic might optimize performance by reducing vertices
@@ -37,7 +36,8 @@ define(
     //
     var Wrapper                  = function(scn,scl,ff){
 
-      var proto;
+      var proto,defaultFont;
+      defaultFont                = "HelveticaNeue-Medium";
       scene                      = scn;
       scale                      = tyN(scl) ? scl : 1 ;
       if(NNO(FONTS[ff])){defaultFont=ff}
@@ -174,9 +174,33 @@ define(
 
     function constructLetterPolygons(letters, fontSpec, xOffset, yOffset, zOffset, letterScale, thickness, material){
       var letterOrigin           = 0,
-          letterMeshes           = [],
-          letterBoxes            = new Array(letters.length),i,j,k,combo,shapesList,holesList,shape,holes,csgShape,csgHole,letterMesh;
+          lettersMeshes          = [],
+          letterBoxes            = new Array(letters.length),letter,letterSpec,i,j,k,lists,shapesList,holesList,shape,holes,csgShape,letterMesh,letterMeshes;
 
+      for(i=0;i<letters.length;i++){
+        letter                   = letters[i];
+        letterSpec               = fontSpec[letter];
+        if(NNO(letterSpec)){
+          lists                  = buildLetterMeshes(letter, i, letterSpec);
+          shapesList             = lists[0];
+          holesList              = lists[1];
+          letterMeshes           = [];
+          for(j=0;j<shapesList.length;j++){
+            shape                = shapesList[j];
+            holes                = holesList[j];
+            if(NEA(holes)){
+              letterMesh         = punchHoles(shape,holes,letter,i)
+            }else{
+              letterMesh         = shape
+            }
+            // letterMesh.material  = material;
+            letterMeshes.push(letterMesh)
+          }
+          if(letterMeshes.length){lettersMeshes.push(merge(letterMeshes))}
+        }
+      };
+
+      if(false){  // The old way
       for(i=0;i<letters.length;i++){
         if(NNO(fontSpec[letters[i]])){
           combo                  = buildLetterMeshes(letters[i], i, fontSpec[letters[i]]);
@@ -202,9 +226,10 @@ define(
           }
         }
       };
-      letterMeshes.width            = round(letterOrigin);
-      letterMeshes.letterBoxes      = letterBoxes;
-      return letterMeshes;
+      }
+      lettersMeshes.width        = round(letterOrigin);
+      lettersMeshes.letterBoxes  = letterBoxes;
+      return lettersMeshes;
 
       // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
       // A letter may have one or more shapes and zero or more holes
@@ -249,6 +274,28 @@ define(
         };
         function adjustX(xVal){return round(offX+letterScale*xVal)};
         function adjustZ(yVal){return round(offZ+letterScale*yVal)}
+      };
+
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+      function punchHoles(shape,holes,letter,i){
+        var csgShape             = BABYLON.CSG.FromMesh(shape);
+        for(var k=0; k<holes.length; k++){
+          csgShape               = csgShape.subtract(BABYLON.CSG.FromMesh(holes[k]))
+        }
+        holes.forEach(function(h){h.dispose()});
+        shape.dispose();
+        return csgShape.toMesh("Net-"+letter+i+"-"+weeid())
+      };
+
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+      // ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+      function merge(arrayOfMeshes){
+        if(arrayOfMeshes.length===1){
+          return arrayOfMeshes[0]
+        }else{
+          return BABYLON.Mesh.MergeMeshes(arrayOfMeshes,true)
+        }
       }
     };
 

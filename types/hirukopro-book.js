@@ -609,9 +609,6 @@ function coordinates(cmd){
     }
   }
 };
-// For the hole, we must bread it down to an array of arrays
-            var arrayHole = polyHole.getPoints().map(function(point){return new BABYLON.Vector2(point.x, point.y)});
-function makeHole(){path2.getPoints().map(function(point){return [point.x,point.y]})}
 function makeD(path){
   var d  = "";
   path.commands.forEach(function(cmd){d+=" "+cmd.type+coordinates(cmd)});
