@@ -11,7 +11,7 @@ define(
 
   function(HPB,HNM,CSN){
 
-    var scene,scale,FONTS,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
+    var scene,FONTS,defaultColor,defaultOpac,naturalLetterHeight,curveSampleSize,Γ=Math.floor;
 
     FONTS                        = {};
     FONTS["HirukoPro-Book"]      = HPB;
@@ -36,11 +36,17 @@ define(
     //
     var Wrapper                  = function(scn,scl,ff){
 
-      var proto,defaultFont;
-      defaultFont                = "HelveticaNeue-Medium";
+      var proto,defaultFont,scale,meshOrigin,preferences;
+
+      if(NNO(scl)){
+        preferences              = scl
+      }else{
+        preferences              = { defaultFont: ff , scale: scl }
+      }
+      defaultFont                = NNO(FONTS[preferences.defaultFont])?preferences.defaultFont:"HelveticaNeue-Medium";
+      scale                      = tyN(preferences.scale)?preferences.scale:1;
+      meshOrigin                 = preferences.meshOrigin==="fontOrigin"||preferences.meshOrigin==="letterCenter"?preferences.meshOrigin:"fontOrigin";
       scene                      = scn;
-      scale                      = tyN(scl) ? scl : 1 ;
-      if(NNO(FONTS[ff])){defaultFont=ff}
 
       // Thanks Gijs, wherever you are
       BABYLON.Path2.prototype.addCurveTo = function(redX, redY, blueX, blueY){
@@ -193,40 +199,11 @@ define(
             }else{
               letterMesh         = shape
             }
-            // letterMesh.material  = material;
             letterMeshes.push(letterMesh)
           }
           if(letterMeshes.length){lettersMeshes.push(merge(letterMeshes))}
         }
       };
-
-      if(false){  // The old way
-      for(i=0;i<letters.length;i++){
-        if(NNO(fontSpec[letters[i]])){
-          combo                  = buildLetterMeshes(letters[i], i, fontSpec[letters[i]]);
-          shapesList             = combo[0];
-          holesList              = combo[1];
-          for(j=0;j<shapesList.length;j++){
-            shape                = shapesList[j];
-            holes                = holesList[j];
-            if(NEA(holes)){
-              csgShape           = BABYLON.CSG.FromMesh(shape);
-              for(k=0;k<holes.length;k++){
-                csgHole          = BABYLON.CSG.FromMesh(holes[k]);
-                csgShape         = csgShape.subtract(csgHole)
-              }
-              holes.forEach(function(h){h.dispose()});
-              shape.dispose();
-              letterMesh         = csgShape.toMesh("Net-"+letters[i]+i+"-"+weeid(),material,scene);
-            }else{
-              letterMesh         = shape
-            }
-            letterMesh.material  = material;
-            letterMeshes.push(letterMesh)
-          }
-        }
-      };
-      }
       lettersMeshes.width        = round(letterOrigin);
       lettersMeshes.letterBoxes  = letterBoxes;
       return lettersMeshes;
