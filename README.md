@@ -4,7 +4,7 @@ Generate letters in BABYLON meshes.
 
 ### Basic-Usage
 
-Writer = BABYLON.MeshWriter(scene, {scale:scale});
+	Writer = BABYLON.MeshWriter(scene, {scale:scale});
 	text1  = new Writer( 
 	                "ABC",
 	                {
