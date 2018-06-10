@@ -55,7 +55,7 @@
 
     locale: "en-us",
 
-    optimize: "uglify",
+    optimize: "none",
 
     uglify2: {
         mangle: { except: [ ] }

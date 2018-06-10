@@ -4,35 +4,38 @@ Generate letters in BABYLON meshes.
 
 ### Basic-Usage
 
-	Type  = BABYLONTYPE(scene, scale, "HirukoPro-Book");
-	text  = new Type( 
-	            "ABC",
-	            {
-	                "anchor": "center",
-	                "letter-height": 50,
-	                "color": "#1C3870",
-	                "font-family": "HelveticaNeue-Medium",
-	                "position": {
-	                    "z": 20
+Writer = BABYLON.MeshWriter(scene, {scale:scale});
+	text1  = new Writer( 
+	                "ABC",
+	                {
+	                    "anchor": "center",
+	                    "letter-height": 50,
+	                    "color": "#1C3870",
+	                    "position": {
+	                        "z": 20
+	                    }
 	                }
-	            }
-	       );
+	            );
 
 &#9679; See playground example:
-https://www.babylonjs-playground.com/#XWVXN9#7
+https://www.babylonjs-playground.com/#PL752W#1
 
-### Superconstructor - BABYLONTYPE()
+### Superconstructor - BABYLON.MeshWriter()
 
-After this module is loaded, BABYLONTYPE is defined as a global function.  It is called with one to three parameters.
-- **Scene** &nbsp; required
-- **Scale** &nbsp; optional, default 1
-- **Default font** &nbsp; optional, default HelveticaNeue Medium
+After this module is loaded, BABYLON.MeshWriter is defined.  It is called with one or two parameters.
+- **scene** &nbsp; required
+- **preferences** &nbsp; optional &nbsp; The preferences object may specify up to three values
 
-A call to BABYLONTYPE() returns a constructor.  Call it "**Type**".
+	      FIELD                 DEFAULT
+	    default-font           Helvetica
+	    scale                      1
+	    letter-origin         "letter-center"
 
-### Constructor - new Type()
+The call to BABYLON.MeshWriter returns a constructor.  Call it "**Writer**".
 
-new Type() is called with a string and an (optional) options parameter.&nbsp; The options conform roughly to normal BabylonJS structures and terminology.
+### Constructor - new Writer()
+
+new Writer() is called with a string and an (optional) options parameter.&nbsp; The options conform roughly to normal BabylonJS structures and terminology.
 
 	      FIELD                 DEFAULT
 	    font-family             default-font
@@ -52,13 +55,13 @@ new Type() is called with a string and an (optional) options parameter.&nbsp; Th
 	        emissive            color                # from option field 'color' above
 
 
-**new Type()** builds a mesh with material that is inserted into the scene.&nbsp; This is a multi-step process with interim meshes and holes per letter.&nbsp;  These meshes are sucked into an SPS and then disposed.&nbsp; At the end, one mesh, one material and one SPS have been added to the scene.
+**new Writer()** builds a mesh with material that is inserted into the scene.&nbsp; This is a multi-step process with interim meshes and holes per letter.&nbsp;  These meshes are sucked into an SPS and then disposed.&nbsp; At the end, one mesh, one material and one SPS have been added to the scene.
 
-**new Type()** also returns a type instance with useful methods.&nbsp; See below.
+**new Writer()** also returns a **writer** instance with useful methods.&nbsp; See below.
 
 ### Instance
 
-Each Type instance has methods to allow one to retrieve the BabylonJS objects or to get/set attributes of the SPS.
+Each **writer** instance has methods to allow one to retrieve the BabylonJS objects or to get/set attributes of the SPS.
 
 	   getSPS
 	   getMesh
